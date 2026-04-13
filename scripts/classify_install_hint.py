@@ -5,7 +5,7 @@ import json
 import re
 
 
-GITHUB_URL_RE = re.compile(r"https?://github\.com/[^/\s]+/[^/\s)]+")
+GITHUB_URL_RE = re.compile(r"https?://github\.com/[^/\s]+/[^)\s]+")
 GITHUB_SHORT_RE = re.compile(r"\b([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)\b")
 ZIP_RE = re.compile(r"\b(zip|upload a skill|upload.*zip|zip file)\b", re.IGNORECASE)
 PLUGIN_MARKETPLACE_ADD_RE = re.compile(r"/plugin\s+marketplace\s+add\s+([^\s]+)")

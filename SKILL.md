@@ -42,6 +42,9 @@ Choose the shortest route that is still reliable.
 Use `scripts/inspect_skill_repo.py` when a local folder is available and the repo layout is not obvious.
 Use `scripts/check_skill_md.py` when you need a deterministic check of frontmatter or BOM issues.
 Use `scripts/classify_install_hint.py` when the user pastes a Claude tutorial command or install snippet and you need to map it to a Codex route.
+Use `scripts/trigger_score.py` when installability looks fine but you need to know whether the skill will actually match real user prompts well.
+Use `scripts/generate_install_report.py` to leave behind a readable Markdown analysis after each install review.
+Use `scripts/install_skill_flow.py` when you want a semi-automatic route selector that can also copy a chosen local skill into Codex.
 
 ## Core Workflow
 
@@ -57,6 +60,7 @@ If the user copied a tutorial command, normalize it first with `references/insta
 - Rewrite `SKILL.md` and supporting files if discovery or trigger quality is weak.
 - Split long guidance into `references/` when building a durable Codex port.
 - Use compatibility score and install tier to explain why a route is safe or risky.
+- Generate an install report whenever the result will be reviewed later, shared, or used as a migration record.
 
 4. Validate, do not assume.
 Always verify:
@@ -99,7 +103,7 @@ For the full sequence, read `references/migration-playbook.md`.
 
 ## Discovery Rules
 
-- Treat “installed on disk but missing from `codex debug prompt-input`” as a failed install.
+- Treat "installed on disk but missing from `codex debug prompt-input`" as a failed install.
 - Save `SKILL.md` as UTF-8 without BOM.
 - Prefer one canonical folder per skill.
 - Keep frontmatter simple.
@@ -123,6 +127,7 @@ Before calling the migration finished, verify:
 - `scripts/check_skill_md.py <path-to-skill-md>` reports no blocking issues
 - `scripts/inspect_skill_repo.py <path-to-skill-folder>` shows the expected structure
 - compatibility score, dependency profile, and install tier are sensible for the chosen route
+- trigger quality is good enough for realistic prompts, or the report clearly explains why migration polish is still needed
 - `codex debug prompt-input` shows the skill when installed into a live Codex skills directory
 
 ## Reference Guide
@@ -131,4 +136,5 @@ Read only what is needed:
 - `references/migration-playbook.md` for the end-to-end migration sequence
 - `references/compatibility-matrix.md` for route selection
 - `references/install-route-adaptation.md` for translating Claude install tutorials into Codex actions
+- `references/install-workflow.md` for the semi-automatic installer pattern
 - `references/discovery-troubleshooting.md` for failure analysis

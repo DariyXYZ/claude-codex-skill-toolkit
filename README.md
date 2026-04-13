@@ -22,6 +22,9 @@ This repository contains a Codex-native skill that helps with:
 - `scripts/inspect_skill_repo.py`: quick repo triage for migration planning
 - `scripts/run_smoke_matrix.py`: smoke-test matrix for multiple local skill repos
 - `scripts/classify_install_hint.py`: translates Claude-oriented install hints into Codex install routes
+- `scripts/trigger_score.py`: estimates how well a skill will match realistic user phrasing
+- `scripts/generate_install_report.py`: creates a Markdown install report after analysis
+- `scripts/install_skill_flow.py`: semi-automatic install workflow for local repo/skill paths
 
 ## Install in Codex
 
@@ -47,6 +50,29 @@ python scripts/check_skill_md.py SKILL.md
 python scripts/inspect_skill_repo.py .
 python scripts/run_smoke_matrix.py C:\path\to\repo1 C:\path\to\repo2 --format markdown
 python scripts/classify_install_hint.py "/plugin marketplace add owner/repo"
+python scripts/trigger_score.py C:\path\to\skill-folder
+python scripts/generate_install_report.py --hint "https://github.com/owner/repo" --target-path C:\path\to\repo
+```
+
+## Semi-automatic install flow
+
+Example:
+
+```powershell
+python scripts/install_skill_flow.py `
+  --hint "/plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill" `
+  --target-path C:\path\to\ui-ux-pro-max-skill `
+  --report-out install-report.md
+```
+
+If the target path is local and you already know the chosen candidate folder, you can also copy it into Codex:
+
+```powershell
+python scripts/install_skill_flow.py `
+  --hint "https://github.com/anthropics/skills/tree/main/skills/frontend-design" `
+  --target-path C:\path\to\repo `
+  --candidate-folder frontend-design `
+  --execute-copy
 ```
 
 ## Real-world findings

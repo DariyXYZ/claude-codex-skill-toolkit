@@ -5,6 +5,7 @@ import json
 import re
 from os import environ
 from pathlib import Path
+from trigger_score import score_skill_dir
 
 
 SKILL_LAYOUTS = (
@@ -200,6 +201,19 @@ def score_candidate(candidate: dict, conflicts: dict[str, list[str]]) -> tuple[i
         score -= 4
         reasons.append("Namespaced skill name may merit migration polish.")
 
+    trigger_profile = candidate.get("trigger_profile") or {}
+    trigger_score = trigger_profile.get("trigger_quality_score")
+    if isinstance(trigger_score, int):
+        if trigger_score >= 85:
+            score += 5
+            reasons.append("Strong trigger quality.")
+        elif trigger_score >= 65:
+            score += 2
+            reasons.append("Good trigger quality.")
+        elif trigger_score < 45:
+            score -= 10
+            reasons.append("Weak trigger quality.")
+
     score = max(0, min(100, score))
     return score, reasons
 
@@ -328,6 +342,7 @@ def inspect(path: Path) -> dict:
     conflicts = []
     for candidate in report["candidate_skills"]:
         candidate["dependency_profile"] = audit_candidate_dependencies(Path(candidate["path"]))
+        candidate["trigger_profile"] = score_skill_dir(Path(candidate["path"]))
         candidate_name = candidate.get("name")
         if candidate_name and candidate_name in installed_skill_names:
             conflicts.append(
