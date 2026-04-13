@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
+from os import environ
 from pathlib import Path
 
 
@@ -10,6 +12,9 @@ SKILL_LAYOUTS = (
     ("skills-dir", "skills"),
     ("claude-skills-dir", ".claude/skills"),
 )
+
+NAME_RE = re.compile(r"^name:\s*(.+)$", re.MULTILINE)
+DESCRIPTION_RE = re.compile(r"^description:\s*(.+)$", re.MULTILINE)
 
 
 def parse_args() -> argparse.Namespace:
@@ -65,6 +70,58 @@ def load_skill_json(root: Path) -> dict | None:
         return {"_parse_error": True}
 
 
+def parse_skill_metadata(skill_dir: Path) -> dict:
+    skill_md = skill_dir / "SKILL.md"
+    result = {
+        "folder": skill_dir.name,
+        "path": str(skill_dir.resolve()),
+        "name": None,
+        "description": None,
+    }
+
+    if not skill_md.exists():
+        return result
+
+    try:
+        text = skill_md.read_text(encoding="utf-8-sig")
+    except Exception:
+        return result
+
+    name_match = NAME_RE.search(text)
+    desc_match = DESCRIPTION_RE.search(text)
+    if name_match:
+        result["name"] = name_match.group(1).strip().strip('"').strip("'")
+    if desc_match:
+        result["description"] = desc_match.group(1).strip().strip('"').strip("'")
+    return result
+
+
+def get_codex_skills_root() -> Path | None:
+    codex_home = environ.get("CODEX_HOME")
+    if codex_home:
+        root = Path(codex_home) / "skills"
+        return root if root.exists() else root
+
+    user_profile = environ.get("USERPROFILE")
+    if not user_profile:
+        return None
+    return Path(user_profile) / ".codex" / "skills"
+
+
+def get_installed_skill_names(skills_root: Path | None) -> dict[str, list[str]]:
+    if not skills_root or not skills_root.exists():
+        return {}
+
+    installed: dict[str, list[str]] = {}
+    for child in skills_root.iterdir():
+        if not child.is_dir():
+            continue
+        metadata = parse_skill_metadata(child)
+        if metadata["name"]:
+            installed.setdefault(metadata["name"], []).append(str(child.resolve()))
+    return installed
+
+
 def inspect(path: Path) -> dict:
     skill_json = load_skill_json(path) if path.exists() and path.is_dir() else None
     layout_candidates = (
@@ -93,6 +150,8 @@ def inspect(path: Path) -> dict:
             key: [str(p.resolve()) for p in value]
             for key, value in layout_candidates.items()
         },
+        "candidate_skills": [],
+        "conflicts_with_installed": [],
         "candidate_skill_dirs": [],
         "repo_kind": "",
         "recommended_route": "",
@@ -111,6 +170,21 @@ def inspect(path: Path) -> dict:
 
     skill_dirs = flattened_candidates or find_skill_dirs(path)
     report["candidate_skill_dirs"] = [str(p.resolve()) for p in skill_dirs]
+    report["candidate_skills"] = [parse_skill_metadata(skill_dir) for skill_dir in skill_dirs]
+
+    installed_skill_names = get_installed_skill_names(get_codex_skills_root())
+    conflicts = []
+    for candidate in report["candidate_skills"]:
+        candidate_name = candidate.get("name")
+        if candidate_name and candidate_name in installed_skill_names:
+            conflicts.append(
+                {
+                    "candidate_name": candidate_name,
+                    "candidate_path": candidate["path"],
+                    "installed_paths": installed_skill_names[candidate_name],
+                }
+            )
+    report["conflicts_with_installed"] = conflicts
 
     if "claude-skills-dir" in layout_candidates:
         report["repo_kind"] = "platform-installer-repo"
@@ -155,6 +229,11 @@ def inspect(path: Path) -> dict:
     if readme.exists() and not skill_dirs and not report["has_skill_json"] and not report["has_claude_plugin"]:
         report["notes"].append(
             "README exists without a detected skill folder; inspect whether the repo is only an index of external skills."
+        )
+
+    if conflicts:
+        report["notes"].append(
+            "One or more candidate skills have the same frontmatter name as already-installed Codex skills. Review for collisions before installing."
         )
 
     return report

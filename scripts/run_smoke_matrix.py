@@ -25,16 +25,17 @@ def render_markdown(reports: list[dict]) -> str:
     lines = [
         "# Smoke Test Matrix",
         "",
-        "| Repo | Kind | Route | Candidates | Notes |",
-        "|---|---|---|---:|---|",
+        "| Repo | Kind | Route | Candidates | Conflicts | Notes |",
+        "|---|---|---|---:|---:|---|",
     ]
     for report in reports:
         repo = Path(report["root"]).name
         kind = report.get("repo_kind") or "-"
         route = report.get("recommended_route") or "-"
         candidates = len(report.get("candidate_skill_dirs") or [])
+        conflicts = len(report.get("conflicts_with_installed") or [])
         notes = "; ".join(report.get("notes") or [])
-        lines.append(f"| `{repo}` | `{kind}` | `{route}` | {candidates} | {notes} |")
+        lines.append(f"| `{repo}` | `{kind}` | `{route}` | {candidates} | {conflicts} | {notes} |")
     return "\n".join(lines)
 
 

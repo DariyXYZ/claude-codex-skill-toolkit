@@ -57,6 +57,49 @@ Toolkit outcome:
 Takeaway:
 - catalog repos should be treated as indexes, not install targets
 
+### 4. `ehmo/platform-design-skills`
+
+Observed shape:
+- `skills/<platform>/SKILL.md`
+- product-design-oriented platform skills for web, iOS, Android, and more
+
+Toolkit outcome:
+- correctly classified as `multi-skill-repo`
+- revealed a practical naming collision with an already installed local skill
+
+Important finding:
+- `skills/web/SKILL.md` declares `name: web-design-guidelines`
+- this collides with the already installed Vercel skill of the same frontmatter name
+
+Takeaway:
+- repo structure alone is not enough
+- a migration toolkit should detect name collisions before install, not after
+
+### 5. `ibelick/ui-skills`
+
+Observed shape:
+- `skills/` repo with focused UI review and repair skills
+
+Toolkit outcome:
+- correctly classified as `multi-skill-repo`
+
+Takeaway:
+- these repos are good candidates for raw install
+- next-order evaluation should focus on trigger quality and dependency/risk, not just structure
+
+### 6. `shadcn-ui/ui`
+
+Observed shape:
+- monorepo with a `skills/shadcn/SKILL.md`
+- strong component and CLI-oriented guidance
+
+Toolkit outcome:
+- correctly classified as `multi-skill-repo`
+
+Takeaway:
+- very large monorepos can still expose a clean skill path
+- the toolkit should help users locate the exact child skill rather than misclassifying the whole repo
+
 ## Main product improvements derived from testing
 
 1. Detect `.claude/skills` as a first-class layout.
@@ -64,3 +107,4 @@ Takeaway:
 3. Distinguish platform-installer repos from true catalogs.
 4. Keep direct-install guidance for standard `skills/` repos.
 5. Preserve a separate route for docs-only catalogs.
+6. Detect frontmatter-name collisions against already installed Codex skills.

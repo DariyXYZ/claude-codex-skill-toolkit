@@ -7,6 +7,7 @@ This repository contains a Codex-native skill that helps with:
 - deciding when direct install is enough
 - migrating Claude-only skills into Codex-friendly structure
 - handling Claude/platform-specific layouts such as `.claude/skills`, `.claude-plugin`, and `skill.json`
+- detecting skill-name collisions against already installed Codex skills
 - validating discovery issues such as weak frontmatter or UTF-8 BOM
 - packaging migrated skills for sharing or publishing
 
