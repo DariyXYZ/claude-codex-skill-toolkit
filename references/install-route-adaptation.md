@@ -14,12 +14,14 @@ Examples:
 - `https://github.com/owner/repo`
 - `owner/repo`
 - `https://github.com/owner/repo/tree/main/skills/skill-name`
+- `https://github.com/anthropics/skills/blob/main/skills/theme-factory/SKILL.md`
 
 Claude context:
 - often documented as a plugin marketplace repo
 - may also be a direct skill repo
 
 Codex adaptation:
+- if the owner, URL, repo name, or surrounding text signals Claude or Anthropic, route through `claude-codex-skill-toolkit` first instead of treating it as a plain direct-install request
 - inspect the repo
 - locate `skills/<name>/SKILL.md`, `.claude/skills/<name>/SKILL.md`, or root `SKILL.md`
 - install the exact skill folder
@@ -140,3 +142,17 @@ Community repositories often document:
 - GitHub repo URLs
 - CLI installers that generate `.claude/skills/` or platform-specific files
 - shell snippets that manually create `.claude/skills/<name>/skill.md` as a local bootstrap
+
+## High-confidence Claude markers
+
+Treat these as direct signals to use the Claude-to-Codex toolkit:
+- `anthropics/` GitHub owner or `github.com/anthropics/...`
+- any request text containing `Claude`, `Claude Code`, `Anthropic`, or `anthropics`
+- `.claude/skills`, `.claude-plugin`, `skill.json`, `marketplace.json`
+- `/plugin marketplace add`, `/plugin install`, `/plugin add`
+- Claude ZIP upload and Skills API references
+
+Treat these as softer signals that still deserve review:
+- repo names containing `claude`
+- docs or blog pages on `anthropic.com` or `docs.anthropic.com`
+- mixed installer repos that mention both Codex and Claude in the same setup instructions

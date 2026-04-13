@@ -13,9 +13,11 @@ Observed shape:
 Toolkit outcome:
 - correctly classified as `multi-skill-repo`
 - recommended route: `install-exact-skill-folder`
+- should also be treated as Claude-oriented because the GitHub owner itself is `anthropics`
 
 Takeaway:
 - the current direct-install path works well for standard skill repositories
+- `anthropics/...` is a first-class activation marker for the Claude-to-Codex toolkit, even when the repo layout is already Codex-friendly
 
 ### 2. `nextlevelbuilder/ui-ux-pro-max-skill`
 
@@ -105,6 +107,6 @@ Takeaway:
 1. Detect `.claude/skills` as a first-class layout.
 2. Surface `skill.json` and `.claude-plugin/plugin.json` as installability signals.
 3. Distinguish platform-installer repos from true catalogs.
-4. Keep direct-install guidance for standard `skills/` repos.
+4. Treat `anthropics/...`, `Claude`, and `Anthropic` references as first-class toolkit triggers, not just normal GitHub installs.
 5. Preserve a separate route for docs-only catalogs.
 6. Detect frontmatter-name collisions against already installed Codex skills.

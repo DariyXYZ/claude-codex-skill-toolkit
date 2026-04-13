@@ -31,6 +31,15 @@ Activate when the request includes ideas like:
 - package this migrated skill for GitHub
 - review whether this Claude skill will work in Codex
 
+Treat the following as direct Claude-oriented signals even if the user only says "install this skill" and pastes a link:
+- GitHub URLs or `owner/repo` references under `anthropics/`, especially `anthropics/skills`
+- URLs, repo names, or text that mention `Claude`, `Claude Code`, `Anthropic`, or `anthropics`
+- paths or snippets containing `.claude/skills`, `.claude-plugin`, `skill.json`, or `marketplace.json`
+- commands such as `/plugin marketplace add`, `/plugin install`, or `/plugin add`
+- Claude-specific ZIP upload flows or Skills API references
+
+When any of those markers are present, use this skill first before relying on raw direct install.
+
 ## Quick Route Selection
 
 Choose the shortest route that is still reliable.
@@ -85,10 +94,11 @@ When the user provides a GitHub repo or skill URL:
 
 1. Inspect the repo root and `skills/` first.
 2. Also inspect `.claude/skills`, root `skill.json`, and `.claude-plugin/plugin.json` before deciding the repo is only docs or a catalog.
-3. Install the exact skill folder, not the whole repository, when the target path is clear.
-4. Read the installed `SKILL.md` immediately after install.
-5. Stop if discovery is already clean.
-6. Switch to migration if the installed skill is invisible, vaguely named, malformed, or still Claude-only.
+3. If the repo, owner, path, or surrounding text carries Claude-oriented signals such as `anthropics/skills`, `Claude`, `Anthropic`, or `.claude/*`, stay in this toolkit flow even when the skill path looks obvious.
+4. Install the exact skill folder, not the whole repository, when the target path is clear.
+5. Read the installed `SKILL.md` immediately after install.
+6. Stop if discovery is already clean and the trigger quality is acceptable.
+7. Switch to migration if the installed skill is invisible, vaguely named, malformed, weakly described, or still Claude-only.
 
 Bias toward exact `--repo` plus `--path` installs when you can infer the path confidently.
 

@@ -15,6 +15,64 @@ API_SKILLS_RE = re.compile(r"(/v1/skills|POST\s+/v1/skills|Skills API)", re.IGNO
 LOCAL_PATH_RE = re.compile(r"([A-Za-z]:\\[^\n\r]+|\.{0,2}/[^\s]+)")
 CLAUDE_LOCAL_SKILL_SNIPPET_RE = re.compile(r"\.claude/skills/([^/\s]+)", re.IGNORECASE)
 LOCAL_SCAFFOLD_COMMAND_RE = re.compile(r"\b(mkdir|touch|printf|cat|echo|cp|copy)\b", re.IGNORECASE)
+CLAUDE_TEXT_RE = re.compile(r"\b(claude|claude code|anthropic|anthropics)\b", re.IGNORECASE)
+CLAUDE_GITHUB_OWNER_RE = re.compile(r"github\.com/anthropics/|^anthropics/", re.IGNORECASE)
+CLAUDE_DOCS_RE = re.compile(r"(docs\.anthropic\.com|anthropic\.com)", re.IGNORECASE)
+
+
+def detect_claude_signals(text: str) -> list[str]:
+    signals: list[str] = []
+    normalized = text.strip()
+
+    if CLAUDE_TEXT_RE.search(normalized):
+        signals.append("mentions-claude-or-anthropic")
+    if CLAUDE_GITHUB_OWNER_RE.search(normalized):
+        signals.append("anthropics-github-source")
+    if ".claude/" in normalized.lower() or "\\.claude\\" in normalized.lower():
+        signals.append("claude-local-path")
+    if PLUGIN_MARKETPLACE_ADD_RE.search(normalized):
+        signals.append("claude-plugin-marketplace-command")
+    if PLUGIN_INSTALL_RE.search(normalized) or PLUGIN_ADD_RE.search(normalized):
+        signals.append("claude-plugin-command")
+    if API_SKILLS_RE.search(normalized):
+        signals.append("claude-skills-api")
+    if ZIP_RE.search(normalized):
+        signals.append("claude-zip-or-upload-flow")
+    if CLAUDE_DOCS_RE.search(normalized):
+        signals.append("anthropic-docs-or-domain")
+
+    github_match = GITHUB_URL_RE.search(normalized)
+    if github_match:
+        github_url = github_match.group(0).lower()
+        if "/blob/" in github_url or "/tree/" in github_url:
+            signals.append("github-path-link")
+        if "/skills/" in github_url:
+            signals.append("github-skills-path")
+        if "claude" in github_url:
+            signals.append("claude-in-github-url")
+
+    short_match = GITHUB_SHORT_RE.search(normalized)
+    if short_match and "claude" in short_match.group(1).lower():
+        signals.append("claude-in-repo-name")
+
+    # Preserve order but avoid duplicates.
+    return list(dict.fromkeys(signals))
+
+
+def has_strong_claude_signal(signals: list[str]) -> bool:
+    strong_signals = {
+        "mentions-claude-or-anthropic",
+        "anthropics-github-source",
+        "claude-local-path",
+        "claude-plugin-marketplace-command",
+        "claude-plugin-command",
+        "claude-skills-api",
+        "claude-zip-or-upload-flow",
+        "anthropic-docs-or-domain",
+        "claude-in-github-url",
+        "claude-in-repo-name",
+    }
+    return any(signal in strong_signals for signal in signals)
 
 
 def parse_args() -> argparse.Namespace:
@@ -32,6 +90,8 @@ def classify(text: str) -> dict:
     extracted = {}
     codex_route = "inspect-manually"
     notes = []
+    claude_signals = detect_claude_signals(text)
+    should_use_toolkit = has_strong_claude_signal(claude_signals)
 
     match = PLUGIN_MARKETPLACE_ADD_RE.search(text)
     if match:
@@ -46,6 +106,8 @@ def classify(text: str) -> dict:
             "extracted": extracted,
             "codex_route": codex_route,
             "notes": notes,
+            "claude_signals": claude_signals,
+            "should_use_claude_codex_skill_toolkit": should_use_toolkit,
         }
 
     match = PLUGIN_INSTALL_RE.search(text)
@@ -61,6 +123,8 @@ def classify(text: str) -> dict:
             "extracted": extracted,
             "codex_route": codex_route,
             "notes": notes,
+            "claude_signals": claude_signals,
+            "should_use_claude_codex_skill_toolkit": should_use_toolkit,
         }
 
     match = PLUGIN_ADD_RE.search(text)
@@ -76,6 +140,8 @@ def classify(text: str) -> dict:
             "extracted": extracted,
             "codex_route": codex_route,
             "notes": notes,
+            "claude_signals": claude_signals,
+            "should_use_claude_codex_skill_toolkit": should_use_toolkit,
         }
 
     if API_SKILLS_RE.search(text):
@@ -89,6 +155,8 @@ def classify(text: str) -> dict:
             "extracted": extracted,
             "codex_route": codex_route,
             "notes": notes,
+            "claude_signals": claude_signals,
+            "should_use_claude_codex_skill_toolkit": should_use_toolkit,
         }
 
     local_scaffold = CLAUDE_LOCAL_SKILL_SNIPPET_RE.search(text)
@@ -113,6 +181,8 @@ def classify(text: str) -> dict:
             "extracted": extracted,
             "codex_route": codex_route,
             "notes": notes,
+            "claude_signals": claude_signals,
+            "should_use_claude_codex_skill_toolkit": should_use_toolkit,
         }
 
     if ZIP_RE.search(text):
@@ -126,36 +196,56 @@ def classify(text: str) -> dict:
             "extracted": extracted,
             "codex_route": codex_route,
             "notes": notes,
+            "claude_signals": claude_signals,
+            "should_use_claude_codex_skill_toolkit": should_use_toolkit,
         }
 
     github_url = GITHUB_URL_RE.search(text)
     if github_url:
-        scenario = "github-repo-or-tree-url"
+        if CLAUDE_GITHUB_OWNER_RE.search(github_url.group(0)) or "claude" in github_url.group(0).lower():
+            scenario = "claude-github-repo-or-tree-url"
+            codex_route = "run-claude-to-codex-skill-flow"
+            notes.append(
+                "This GitHub source carries Claude-oriented signals, so the Claude-to-Codex toolkit should inspect and validate it before relying on direct install."
+            )
+        else:
+            scenario = "github-repo-or-tree-url"
+            codex_route = "inspect-github-repo-and-install-exact-skill-folder"
+            notes.append(
+                "A GitHub URL is the cleanest path for Codex: inspect the repo layout, then install or migrate the exact skill folder."
+            )
         extracted["github_url"] = github_url.group(0)
-        codex_route = "inspect-github-repo-and-install-exact-skill-folder"
-        notes.append(
-            "A GitHub URL is the cleanest path for Codex: inspect the repo layout, then install or migrate the exact skill folder."
-        )
         return {
             "scenario": scenario,
             "extracted": extracted,
             "codex_route": codex_route,
             "notes": notes,
+            "claude_signals": claude_signals,
+            "should_use_claude_codex_skill_toolkit": should_use_toolkit,
         }
 
     github_short = GITHUB_SHORT_RE.search(text)
     if github_short:
-        scenario = "github-owner-repo-ref"
+        if github_short.group(1).lower().startswith("anthropics/") or "claude" in github_short.group(1).lower():
+            scenario = "claude-github-owner-repo-ref"
+            codex_route = "run-claude-to-codex-skill-flow"
+            notes.append(
+                "This owner/repo reference looks Claude-oriented, so it should first go through the Claude-to-Codex toolkit."
+            )
+        else:
+            scenario = "github-owner-repo-ref"
+            codex_route = "inspect-github-repo-and-install-exact-skill-folder"
+            notes.append(
+                "A short owner/repo reference usually maps to the same repo inspection flow as a full GitHub URL."
+            )
         extracted["repo_ref"] = github_short.group(1)
-        codex_route = "inspect-github-repo-and-install-exact-skill-folder"
-        notes.append(
-            "A short owner/repo reference usually maps to the same repo inspection flow as a full GitHub URL."
-        )
         return {
             "scenario": scenario,
             "extracted": extracted,
             "codex_route": codex_route,
             "notes": notes,
+            "claude_signals": claude_signals,
+            "should_use_claude_codex_skill_toolkit": should_use_toolkit,
         }
 
     local_path = LOCAL_PATH_RE.search(text)
@@ -172,6 +262,8 @@ def classify(text: str) -> dict:
         "extracted": extracted,
         "codex_route": codex_route,
         "notes": notes,
+        "claude_signals": claude_signals,
+        "should_use_claude_codex_skill_toolkit": should_use_toolkit,
     }
 
 

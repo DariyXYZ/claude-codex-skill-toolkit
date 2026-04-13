@@ -104,7 +104,16 @@ def main() -> int:
         "next_action": "",
     }
 
-    if chosen_candidate:
+    if classification.get("should_use_claude_codex_skill_toolkit"):
+        result["next_action"] = (
+            "Claude-oriented markers were detected, so use the Claude-to-Codex toolkit flow first: "
+            "inspect the source, review compatibility and discovery signals, then install or migrate the exact skill folder."
+        )
+        if chosen_candidate:
+            result["next_action"] += (
+                f" Candidate folder '{chosen_candidate['folder']}' is the current best match."
+            )
+    elif chosen_candidate:
         result["next_action"] = (
             f"Inspect or install candidate folder '{chosen_candidate['folder']}' "
             f"with tier {repo_report.get('install_recommendation_tier')}."

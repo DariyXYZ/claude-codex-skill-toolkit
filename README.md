@@ -14,6 +14,24 @@ This repository contains a Codex-native skill that helps with:
 - validating discovery issues such as weak frontmatter or UTF-8 BOM
 - packaging migrated skills for sharing or publishing
 
+## Automatic Claude markers
+
+This toolkit should be used automatically when a user asks to install a skill and the request contains Claude-oriented signals, even if the user does not explicitly say "use claude-codex-skill-toolkit".
+
+Strong markers include:
+- GitHub URLs or `owner/repo` references under `anthropics/`, especially `anthropics/skills`
+- text containing `Claude`, `Claude Code`, `Anthropic`, or `anthropics`
+- `.claude/skills`, `.claude-plugin`, `skill.json`, or `marketplace.json`
+- `/plugin marketplace add`, `/plugin install`, and `/plugin add`
+- Claude ZIP upload instructions and Skills API references
+
+Expected behavior:
+- detect the Claude marker first
+- run the toolkit flow
+- inspect the real skill layout
+- choose direct install, install-with-review, migration, or extract-and-migrate
+- validate Codex discovery before calling the install done
+
 ## What is inside
 
 - `SKILL.md`: the main Codex skill
@@ -39,6 +57,8 @@ Then restart Codex.
 ## Typical use cases
 
 - "Install this Claude skill in Codex"
+- "Install this skill: https://github.com/anthropics/skills/blob/main/skills/theme-factory/SKILL.md"
+- "Поставь скилл https://github.com/anthropics/skills/blob/main/skills/theme-factory/SKILL.md"
 - "Will this GitHub skill repo work well in Codex?"
 - "Migrate this Claude Code skill to Codex"
 - "Will this mkdir/printf .claude/skills command really install a Claude skill?"
