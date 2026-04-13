@@ -1,0 +1,7 @@
+interface:
+  display_name: "Claude to Codex Skill Toolkit"
+  short_description: "Install, migrate, validate, and package Claude skills for Codex"
+  default_prompt: "Use $claude-codex-skill-toolkit to inspect this Claude skill, choose the shortest reliable install or migration path, validate Codex discovery, and package the result if needed."
+
+policy:
+  allow_implicit_invocation: true
