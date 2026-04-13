@@ -32,9 +32,10 @@ Activate when the request includes ideas like:
 Choose the shortest route that is still reliable.
 
 1. If the repo already contains a clean `SKILL.md` and the folder layout is obvious, install the exact skill folder first, then validate discovery.
-2. If the repo is Claude-specific, ambiguous, multi-skill, or still uses Claude-only assumptions, migrate before claiming success.
-3. If the task is only evaluation, inspect the repo and explain compatibility without installing anything.
-4. If the user wants a shareable artifact, build a clean Codex-native package with minimal structure and validation notes.
+2. If the repo contains platform-specific layouts such as `.claude/skills`, `.claude-plugin`, or `skill.json`, inspect those signals before deciding it is non-installable.
+3. If the repo is Claude-specific, ambiguous, multi-skill, or still uses Claude-only assumptions, migrate before claiming success.
+4. If the task is only evaluation, inspect the repo and explain compatibility without installing anything.
+5. If the user wants a shareable artifact, build a clean Codex-native package with minimal structure and validation notes.
 
 Use `scripts/inspect_skill_repo.py` when a local folder is available and the repo layout is not obvious.
 Use `scripts/check_skill_md.py` when you need a deterministic check of frontmatter or BOM issues.
@@ -71,10 +72,11 @@ For GitHub or sharing, keep one canonical skill folder with:
 When the user provides a GitHub repo or skill URL:
 
 1. Inspect the repo root and `skills/` first.
-2. Install the exact skill folder, not the whole repository, when the target path is clear.
-3. Read the installed `SKILL.md` immediately after install.
-4. Stop if discovery is already clean.
-5. Switch to migration if the installed skill is invisible, vaguely named, malformed, or still Claude-only.
+2. Also inspect `.claude/skills`, root `skill.json`, and `.claude-plugin/plugin.json` before deciding the repo is only docs or a catalog.
+3. Install the exact skill folder, not the whole repository, when the target path is clear.
+4. Read the installed `SKILL.md` immediately after install.
+5. Stop if discovery is already clean.
+6. Switch to migration if the installed skill is invisible, vaguely named, malformed, or still Claude-only.
 
 Bias toward exact `--repo` plus `--path` installs when you can infer the path confidently.
 

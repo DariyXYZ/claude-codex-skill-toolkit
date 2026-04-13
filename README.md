@@ -6,6 +6,7 @@ This repository contains a Codex-native skill that helps with:
 - installing Claude-oriented skills into Codex
 - deciding when direct install is enough
 - migrating Claude-only skills into Codex-friendly structure
+- handling Claude/platform-specific layouts such as `.claude/skills`, `.claude-plugin`, and `skill.json`
 - validating discovery issues such as weak frontmatter or UTF-8 BOM
 - packaging migrated skills for sharing or publishing
 
@@ -16,6 +17,7 @@ This repository contains a Codex-native skill that helps with:
 - `references/`: migration playbook, compatibility matrix, troubleshooting notes
 - `scripts/check_skill_md.py`: lint-like checker for discovery-critical `SKILL.md` issues
 - `scripts/inspect_skill_repo.py`: quick repo triage for migration planning
+- `scripts/run_smoke_matrix.py`: smoke-test matrix for multiple local skill repos
 
 ## Install in Codex
 
@@ -39,7 +41,17 @@ Then restart Codex.
 ```powershell
 python scripts/check_skill_md.py SKILL.md
 python scripts/inspect_skill_repo.py .
+python scripts/run_smoke_matrix.py C:\path\to\repo1 C:\path\to\repo2 --format markdown
 ```
+
+## Real-world findings
+
+This toolkit has been smoke-tested against:
+- `anthropics/skills` as a standard `skills/<name>/SKILL.md` multi-skill repo
+- `nextlevelbuilder/ui-ux-pro-max-skill` as a multi-platform installer repo with `.claude/skills`, `.claude-plugin`, and `skill.json`
+- `travisvn/awesome-claude-skills` as a catalog repo that should not be installed directly
+
+See `references/real-world-test-findings.md`.
 
 ## License
 

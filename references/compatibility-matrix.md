@@ -17,6 +17,26 @@ Migration needed when:
 - the name is misleading
 - discovery fails
 
+## Case: repo contains `.claude/skills/<name>/SKILL.md`
+
+Recommended route:
+- treat the repo as a platform-specific skill source
+- inspect `.claude/skills/` child folders directly
+- install or migrate the exact child skill folder you need
+
+Risk level:
+- medium
+
+Migration needed when:
+- the repo only documents Claude marketplace install paths
+- there is no obvious Codex-native packaging
+- the skill name or description needs cleanup for Codex triggering
+
+Extra signals:
+- `skill.json`
+- `.claude-plugin/plugin.json`
+- multi-platform CLI install instructions in `README.md`
+
 ## Case: repo contains only a root `README.md` and links to other skills
 
 Recommended route:
