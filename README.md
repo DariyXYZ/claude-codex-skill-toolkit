@@ -4,6 +4,8 @@ Convert, install, audit, package, and troubleshoot Claude Code skills for Codex.
 
 This repository contains a Codex-native skill for people who need to move skills from Claude-oriented ecosystems into Codex without guessing what will actually work.
 
+![Validate Skill](https://github.com/DariyXYZ/claude-codex-skill-toolkit/actions/workflows/validate.yml/badge.svg)
+
 It helps with:
 
 - installing Claude-oriented skills into Codex
